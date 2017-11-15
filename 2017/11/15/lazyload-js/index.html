@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>图片延迟加载 - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">图片延迟加载</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>5 Minutes</li><li><i class="icon icon-calendar"></i>November 15, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><h2 id="js实现图片延迟加载"><a href="#js实现图片延迟加载" class="headerlink" title="js实现图片延迟加载"></a><strong>js实现图片延迟加载</strong></h2><h3 id="图片延迟加载的目的"><a href="#图片延迟加载的目的" class="headerlink" title="图片延迟加载的目的"></a><strong>图片延迟加载的目的</strong></h3><blockquote>
+<p>延迟加载图片，解决首屏快速加载的问题，网页打开的速度是第一要素,加载html时会去解析img的src,http请求下载图片，会阻塞页面加载。主要目的是作为服务器前端的优化，减少请求数或延迟请求数，对服务器缓压</p>
+<h3 id="延迟加载的实现"><a href="#延迟加载的实现" class="headerlink" title="延迟加载的实现"></a><strong>延迟加载的实现</strong></h3><p>Web图片的懒加载就是通过读取img元素，然后获得img元素的origin-src（也可以约定为其他属性名）属性的值，并赋予img的src，从而实现动态加载图片的机制</p>
+</blockquote>
+<p><strong>HTML约定</strong></p>
+<pre><code> &lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img1.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img2.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img3.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img4.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img5.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img6.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img7.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img8.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img9.png&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;img-area&quot;&gt;&lt;img src=&quot;&quot; alt=&quot;loading&quot; class=&quot;my-photo lazyimg&quot; data-original=&quot;http://axuebin.com/lazyload/img/img10.png&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+</code></pre><p><strong>javascript实现</strong></p>
+<pre><code>    data-src
+
+window.onload = checkImgs
+window.onscroll = throttle(checkImgs)
+// 页面加载完成 检查一下图片，如果图片在第一屏，显示出来
+function checkImgs () {
+    console.log(Array.from(imgs).entries())
+    for (let [i,img] of Array.from(imgs).entries()) {
+        // console.log(i)
+
+        if (isInSight(img)) {
+            loadImg(img)
+        }
+    }
+}
+// 滚动 浏览器是个窗口 viewport 对应的网页内容发生变化 scrollTop
+// 检测， 我们滚过的那块区域  是否有还未显示的图片
+function isInSight (el) {
+    const bound = el.getBoundingClientRect()
+    const clientHeight = window.innerHeight
+    console.log(bound, clientHeight)
+    // alert(bound.top);
+    // alert(clientHeight);
+    return bound.top &lt;= clientHeight + 100
+}
+ function loadImg (el) {
+    const src = el.dataset.src
+    if (src !== el.src) {
+        const source = src
+        // alert(source)
+        let img = document.createElement(&apos;img&apos;)
+        img.onload = function() {
+            el.src = source
+        }
+        img.src = source
+
+    }
+}
+// throttle 节流,不要执行的太频繁
+// 高阶函数的应用场景 增强了函数的功能
+function throttle (fn, mustRun = 500) {
+    const timer = null
+    let previous = null
+    return function () {
+        const now = new Date()
+        const that = this
+        const args = arguments
+        if(!previous) {
+            previous = now
+        }
+        const remaining = now - previous
+        if (mustRun &amp;&amp; remaining &gt;= mustRun) {
+            fn.apply(that, args)
+            previous = now
+        }
+    }
+}
+</code></pre><p><strong>jquery实现</strong></p>
+<pre><code>    data-original
+
+&lt;script src=&quot;http://cdn.bootcss.com/jquery/2.1.0/jquery.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;http://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js&quot;&gt;&lt;/script&gt; //顺序不可颠倒
+$(function() { 
+    $(&quot;.lazyimg&quot;).lazyload({ 
+        placeholder: &apos;&apos;,
+        effect : &quot;fadeIn&quot;,
+        threshold: 200
+    }); 
+});
+</code></pre></div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/js/">js</a><span class="category-list-count">1</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cja14o79b0001jchqx98fe1nl" data-title="图片延迟加载" data-url="http://yoursite.com/2017/11/15/lazyload-js/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+var duoshuoQuery = {short_name: siteName};
+(function() {
+  var ds = document.createElement('script');
+  ds.type = 'text/javascript';ds.async = true;
+  ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+  ds.charset = 'UTF-8';
+  (document.getElementsByTagName('head')[0] 
+  || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();</script></div><ul class="navication"><li class="home"><a href="/"><i class="icon icon-home"></i></a></li><li><a href="/2017/11/15/learn-vue/"><i class="icon icon-arror-left"></i></a></li><li><a href="/2017/11/15/hello-world/"><i class="icon icon-arror-right"></i></a></li></ul><div class="page-footer"><div class="top"><ul class="social"><li><a href="https://gitee.com/horis" title="Github" target="_blank"><i class="icon icon-github"></i></a></li><li><a href="https://www.zhihu.com/people/wei-jun-ba-dao-82/activities" title="Zhihu" target="_blank"><i class="icon icon-zhihu"></i></a></li><li><a href="https://www.segmentfault.com/u/horistardust" title="SegmentFault" target="_blank"><i class="icon icon-segmentfault"></i></a></li></ul></div><div class="bottom"><p class="copyright">© 2017 Hexo<br><small>POWER BY <a href="https://hexo.io" target="_blank">HEXO</a></small><small>, THEME BY <a href="https://github.com/BoizZ/hexo-theme-laughing" target="_blank">LAUGHING</a></small></p></div></div></div><script>var wrap = document.getElementById('wrap');
+window.onload = function () {
+  wrap.className += ' done';
+}</script></body></html>

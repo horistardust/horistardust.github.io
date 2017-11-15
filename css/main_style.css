@@ -333,6 +333,7 @@ pre {
   font-size: 0.8em;
   background-color: #ecf0f1;
   font-family: 'Roboto Mono', Monaco, courier, monospace;
+  overflow: auto;
 }
 
 code {
