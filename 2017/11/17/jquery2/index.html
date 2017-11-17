@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>jquery知识总结（二） - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">jquery知识总结（二）</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>4 Minutes</li><li><i class="icon icon-calendar"></i>November 17, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><p>###<strong>9.最佳实践</strong><br><strong>1.使用最新版本的jQuery</strong></p>
+<p>jQuery的版本更新很快，你应该总是使用最新的版本。因为新版本会改进性能，还有很多新功能。</p>
+<p><strong>2.用对选择器</strong></p>
+<p><strong>（1）最快的选择器：id选择器和元素标签选择器</strong></p>
+<p>举例来说，下面的语句性能最佳：</p>
+<pre><code>$(&apos;#id&apos;)
+
+$(&apos;form&apos;)
+
+$(&apos;input&apos;)
+</code></pre><p>遇到这些选择器的时候，jQuery内部会自动调用浏览器的原生方法（比如getElementById()），所以它们的执行速度快。</p>
+<p> <strong>（2）较慢的选择器：class选择器</strong></p>
+<p>Firefox、Safari、Chrome、Opera浏览器，都有原生方法getElementByClassName()，所以速度并不慢。但是，IE5-IE8都没有部署这个方法，所以这个选择器在IE中会相当慢。<br>　<br>    <strong>（3）最慢的选择器：伪类选择器和属性选择器</strong></p>
+<pre><code>$(&apos;:hidden&apos;)　
+
+$(&apos;[attribute=value]&apos;)
+</code></pre><p>这两种语句是最慢的，因为浏览器没有针对它们的原生方法。但是，一些浏览器的新版本，增加了querySelector()和querySelectorAll()方法，因此会使这类选择器的性能有大幅提高。</p>
+<p><strong>3. 理解子元素和父元素的关系</strong><br>下面六个选择器，都是从父元素中选择子元素。</p>
+<p> (1) $(‘.child’, $parent)</p>
+<p>这条语句的意思是，给定一个DOM对象，然后从中选择一个子元素。jQuery会自动把这条语句转成$.parent.find(‘child’)，这会导致一定的性能损失。它比最快的形式慢了5%-10%。</p>
+<p>(2) $parent.find(‘.child’)</p>
+<p>这条是最快的语句。.find()方法会调用浏览器的原生方法（getElementById，getElementByName，getElementByTagName等等），所以速度较快。</p>
+<p>(3) $parent.children(‘.child’)</p>
+<p>这条语句在jQuery内部，会使用$.sibling()和javascript的nextSibling()方法，一个个遍历节点。它比最快的形式大约慢50%。</p>
+<p>(4) $(‘#parent &gt; .child’)</p>
+<p>jQuery内部使用Sizzle引擎，处理各种选择器。Sizzle引擎的选择顺序是从右到左，所以这条语句是先选.child，然后再一个个过滤出父元素#parent，这导致它比最快的形式大约慢70%。</p>
+<p>(5) $(‘#parent .child’)</p>
+<p>这条语句与上一条是同样的情况。但是，上一条只选择直接的子元素，这一条可以于选择多级子元素，所以它的速度更慢，大概比最快的形式慢了77%。</p>
+<p>(6) $(‘.child’, $(‘#parent’))</p>
+<p>jQuery内部会将这条语句转成$(‘#parent’).find(‘.child’)，比最快的形式慢了23%。</p>
+<p>所以，最佳选择是$parent.find(‘.child’)。而且，由于$parent往往在前面的操作已经生成，jQuery会进行缓存，所以进一步加快了执行速度。</p>
+<p>　　<br><strong>4. 不要过度使用jQuery</strong>　　</p>
+<p>jQuery速度再快，也无法与原生的javascript方法相比。所以有原生方法可以使用的场合，尽量避免使用jQuery。<br>以最简单的选择器为例，document.getElementById(“foo”)要比$(“#foo”)快10多倍。</p>
+<pre><code>$(&apos;a&apos;).click(function(){
+　　alert($(this).attr(&apos;id&apos;));
+　　});//jQuery
+　　
+　　$(&apos;a&apos;).click(function(){
+　　　　alert(this.id);
+　　});//js
+</code></pre><p>上面 <strong>this.id</strong> 的速度比 <strong>$(this).attr(‘id’)</strong> 快了20多倍。</p>
+<p><strong>5. 做好缓存</strong></p>
+<p>选中某一个网页元素，是开销很大的步骤。所以，使用选择器的次数应该越少越好，并且尽可能缓存选中的结果，便于以后反复使用。</p>
+<pre><code>var cached = jQuery(&apos;#top&apos;);//缓存元素
+
+　cached.find(&apos;p.classA&apos;);
+　
+　cached.find(&apos;p.classB&apos;);
+　
+</code></pre><p><strong>6. 使用链式写法</strong></p>
+<p>采用链式写法时，jQuery自动缓存每一步的结果，因此比非链式写法要快。根据测试，链式写法比（不使用缓存的）非链式写法，大约快了25%。</p>
+<p><strong>7. 少改动DOM结构</strong></p>
+<p>（1）改动DOM结构开销很大，因此不要频繁使用.append()、.insertBefore()和.insetAfter()这样的方法。</p>
+<p>如果要插入多个元素，就先把它们合并，然后再一次性插入。根据测试，合并插入比不合并插入，快了将近10倍。</p>
+<p>（2）如果你要对一个DOM元素进行大量处理，应该先用.detach()方法，把这个元素从DOM中取出来，处理完毕以后，再重新插回文档。根据测试，使用.detach()方法比不使用时，快了60%。</p>
+<p>（3）如果你要在DOM元素上储存数据，</p>
+<pre><code>不要写成下面这样：
+
+var elem = $(&apos;#elem&apos;);
+
+elem.data(key,value);
+
+而要写成:
+
+var elem = $(&apos;#elem&apos;);
+　　
+$.data(elem[0],key,value);
+</code></pre><p>后一种写法要比前一种写法，快了将近10倍。因为elem.data()方法是定义在jQuery函数的prototype对象上面的，而$.data()方法是定义jQuery函数上面的，调用的时候不从复杂的jQuery对象上调用，所以速度快得多。　　</p>
+<p>（4）插入html代码的时候，浏览器原生的innterHTML()方法比jQuery对象的html()更快。</p>
+<p><strong>11. 选择作用域链最短的方法</strong></p>
+<p>Javascript的变量采用链式作用域。读取变量的时候，先在当前作用域寻找该变量，如果找不到，就前往上一层的作用域寻找该变量。这样的设计，使得读取局部变量比读取全局变量快得多。</p>
+<p><strong>12.处理事件回调</strong></p>
+<p>当发生某个事件后，如果要连续执行多个操作，最好不要写成下面这样：</p>
+<pre><code>function doSomthing{
+　　　　doSomethingElse();
+　　　　doOneMoreThing();
+　　}
+</code></pre><p>而要改用事件触发的形式：</p>
+<pre><code>　function doSomething{
+　　　　$.trigger(&quot;DO_SOMETHING_DONE&quot;);
+　　}
+　　$(document).on(&quot;DO_SOMETHING_DONE&quot;, function(){
+　　　　doSomethingElse(); }
+　　);
+</code></pre><p>还可以考虑使用deferred对象。</p>
+<pre><code>var wait = function(dtd){
+    　　　　var dtd = $.Deferred(); 
+    　　　　var tasks = function(){
+    　　　　　　alert(&quot;执行完毕！&quot;);
+    　　　　　　dtd.resolve(); // 改变Deferred对象的执行状态
+    　　　　};
+
+    　　　　setTimeout(tasks,5000);
+    　　　　return dtd.promise(); // 返回promise对象
+    　　};
+    　　$.when(wait())
+    　　.done(function(){ alert(&quot;哈哈，成功了！&quot;); })
+    　　.fail(function(){ alert(&quot;出错啦！&quot;); });
+</code></pre></div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/jquery/">jquery</a><span class="category-list-count">2</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cja40cxao00000ghq5q63hox6" data-title="jquery知识总结（二）" data-url="http://yoursite.com/2017/11/17/jquery2/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+var duoshuoQuery = {short_name: siteName};
+(function() {
+  var ds = document.createElement('script');
+  ds.type = 'text/javascript';ds.async = true;
+  ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+  ds.charset = 'UTF-8';
+  (document.getElementsByTagName('head')[0] 
+  || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();</script></div><ul class="navication"><li class="home"><a href="/"><i class="icon icon-home"></i></a></li><li><a href="/2017/11/17/jQuery/"><i class="icon icon-arror-left"></i></a></li><li><a href="/2017/11/16/learnVue/"><i class="icon icon-arror-right"></i></a></li></ul><div class="page-footer"><div class="top"><ul class="social"><li><a href="https://gitee.com/horis" title="Github" target="_blank"><i class="icon icon-github"></i></a></li><li><a href="https://www.zhihu.com/people/wei-jun-ba-dao-82/activities" title="Zhihu" target="_blank"><i class="icon icon-zhihu"></i></a></li><li><a href="https://www.segmentfault.com/u/horistardust" title="SegmentFault" target="_blank"><i class="icon icon-segmentfault"></i></a></li></ul></div><div class="bottom"><p class="copyright">© 2017 Hexo<br><small>POWER BY <a href="https://hexo.io" target="_blank">HEXO</a></small><small>, THEME BY <a href="https://github.com/BoizZ/hexo-theme-laughing" target="_blank">LAUGHING</a></small></p></div></div></div><script>var wrap = document.getElementById('wrap');
+window.onload = function () {
+  wrap.className += ' done';
+}</script></body></html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>移动web - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">移动web</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>5 Minutes</li><li><i class="icon icon-calendar"></i>November 18, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p><strong>native</strong><br>本地应用 使用 Java \ Objective-C \ Swift 开发<br><strong>WEBAPP</strong><br>网页应用 html5 开发<br><strong>HYBRID</strong><br>混合应用 ooxx(native, web)<br><img src="/2017/11/18/MobileWeb/compare.png"></p>
+<h2 id="视觉"><a href="#视觉" class="headerlink" title="视觉"></a>视觉</h2><p><strong>DEVICEPIEXELRATIO</strong></p>
+<p>pixel - px ( picture element )</p>
+<p>dpi / ppi - 每英寸像素 ( dot per inch )</p>
+<p>dips - 设备独立像素 ( device-independent pixels )</p>
+<p>devicePixelRatio - 物理像素 / dips<br>    　　<img src="/2017/11/18/MobileWeb/devicePiexelRatio.jpg"><br>    　　<br><strong>文字 PX, REM器</strong></p>
+<p>固定大小 - px</p>
+<p>多屏适配，统一修改 - rem</p>
+<p>rem - font size of the root element (W3C)</p>
+<p>Q: why not em? A: root</p>
+<p><strong>VIEWPORT</strong></p>
+<pre><code>&lt;meta name=&quot;viewport&quot;
+      content=&quot;width=device-width,
+               height=device-height,
+               inital-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no;&quot;
+/&gt;
+</code></pre><p>width - viewport的宽度</p>
+<p>height - viewport的高度</p>
+<p>initial-scale - 初始的缩放比例</p>
+<p>maximum-scale - 允许用户缩放到的最大比例</p>
+<p>user-scalable - 用户是否可以手动缩放</p>
+<p><strong>橫屏/竖屏</strong></p>
+<pre><code>window.addEventListener(&apos;orientationchange&apos;, function() {
+   // rerender something
+});
+
+console.log(window.orientation); // 0, 90, 180, -90 顺时针角度
+
+
+&lt;style media=&quot;all and (orientation:portrait)&quot; type=&quot;text/css&quot;&gt;
+    /* 竖屏 */
+&lt;/style&gt;
+
+&lt;style media=&quot;all and (orientation:landscape)&quot; type=&quot;text/css&quot;&gt;
+    /* 横屏 */
+&lt;/style&gt;
+</code></pre><p><a href="https://github.com/ecomfe/saber-matchmedia" target="_blank" rel="external">matchMedia</a></p>
+<p><strong>FLEX 伸缩布局</strong></p>
+<p><a href="http://zh.learnlayout.com/flexbox.html" target="_blank" rel="external">learn layout - flexbox</a></p>
+<p><strong>响应式WEB设计（RESPONSIVE WEB DESIGN）</strong></p>
+<p><a href="http://www.w3.org/TR/CSS2/media.html#media-types" target="_blank" rel="external">mediatype</a></p>
+<p><a href="http://www.w3.org/TR/css3-mediaqueries/" target="_blank" rel="external">meidaquery</a></p>
+<p><a href="https://github.com/lolmaus/breakpoint-slicer" target="_blank" rel="external">breakpoint</a></p>
+<p><strong>软键盘:打开数字键盘</strong></p>
+<pre><code>&lt;input type=&quot;tel&quot;&gt;
+</code></pre><p><strong>隐藏地址栏</strong></p>
+<pre><code>setTimeout(function(){ window.scrollTo(0, 1); }, 0);
+</code></pre><p><strong>APPLE-TOUCH-ICON</strong><br>在iPhone,iPad,iTouch的safari上可以使用添加到主屏按钮将网站添加到主屏幕上</p>
+<pre><code>&lt;link rel=&quot;apple-touch-icon&quot; href=&quot;apple-touch-icon-iphone.png&quot; /&gt;
+&lt;link rel=&quot;apple-touch-icon&quot; sizes=&quot;72x72&quot; href=&quot;apple-touch-icon-ipad.png&quot; /&gt;
+&lt;link rel=&quot;apple-touch-icon&quot; sizes=&quot;114x114&quot; href=&quot;apple-touch-icon-iphone4.png&quot; /&gt;
+</code></pre><h2 id="交互"><a href="#交互" class="headerlink" title="交互"></a>交互</h2><p><strong>TOUCH</strong>:摩擦、摩擦</p>
+<p><strong>TAP</strong>:click 有 300± ms 延迟 服用 <a href="https://github.com/ftlabs/fastclick" target="_blank" rel="external">fastclick</a> 后, 可以解决 click 的延迟, 还可以防止 穿透(跨页面穿透除外)</p>
+<p><strong>SCROLL</strong>:区域滚动 overflow:auto不靠谱</p>
+<p>scroll插件：<a href="http://iscrolljs.com/" target="_blank" rel="external">iscroll</a>、<a href="https://github.com/ecomfe/saber-scroll" target="_blank" rel="external">saber-scroll</a></p>
+<p><strong>GESTURES</strong>:<a href="http://static.lukew.com/TouchGestureCards.pdf" target="_blank" rel="external">手势表</a></p>
+<p>食指点击目标尺寸是44 x 44像素，拇指是72 x72像素</p>
+<p>gestures插件：<a href="http://hammerjs.github.io/" target="_blank" rel="external">hammer.js</a></p>
+<p><strong>HTML5 APIS</strong></p>
+<ul>
+<li>刮一刮 (canvas)</li>
+<li>摇一摇 (Device Orientation API)</li>
+<li>咻咻咻 (audio)</li>
+<li>啪啪啪 (getUserMedia)</li>
+</ul>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p><strong>阴影</strong></p>
+<pre><code>-WEBKIT-TAP-HIGHLIGHT-COLOR: RGBA(255,255,255,0)
+</code></pre><p>可以屏蔽点击元素时出现的阴影, 常用于有事件代理的父元素</p>
+<p><strong>IMG</strong></p>
+<ul>
+<li>@2x, @3x:apple又一次重新发明像素</li>
+<li>font icon：矢量图标, 自由变化大小, 颜色; 妈妈再也不用担心我的切图</li>
+<li>base64：减少一个请求, 首屏图片无延迟; 图片没法gzip，而css可以</li>
+<li>lazyload：有流量就会放肆，没流量就会克制</li>
+</ul>
+<p><strong>CSS3</strong></p>
+<ul>
+<li>合理使用渐变/圆角/阴影，别太多, 低端机 hold 不住</li>
+<li>代替js动画，性能好, 兼容好, why not?</li>
+<li>translate3d 开启GPU硬件加速, 提升动画渲染性能</li>
+</ul>
+<p><strong>LOCALSTORAGE</strong></p>
+<ul>
+<li>存储类型：tpl data js img </li>
+<li>每个域下的最大长度为5MB</li>
+</ul>
+<p><strong>避免</strong></p>
+<ul>
+<li>iframe：卡 cry, viewport 失效, iOS 宽高失效, fixed定位错误</li>
+<li>fixed + input： ios软键盘唤起后，页面的 fixed 元素将失效</li>
+</ul>
+<p><strong>SPA OR MULTI PAGE</strong></p>
+<img src="/2017/11/18/MobileWeb/compare2.png">
+<p><strong>“CAN I USE”网站</strong><br>geolocation，canvas，JSON parsing，es5/6，localstorage<br><a href="http://caniuse.com/" target="_blank" rel="external">查看各feature浏览器版本支持</a></p>
+<h2 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h2><ul>
+<li>REMOTE DEBUGGING WITH CHROME FOR ANDROID(4.4+)</li>
+<li>地址栏二维码插件方便手机查看效果</li>
+<li>OS X:Safari → 偏好设置 → 高级 → 在菜单栏中显示开发菜单 Safari → 开发 → XXX’s Phone → xxx.com</li>
+</ul>
+</div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/mobile/">mobile</a><span class="category-list-count">1</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cja43vy5900004chqw8gg9ip4" data-title="移动web" data-url="http://yoursite.com/2017/11/18/MobileWeb/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+var duoshuoQuery = {short_name: siteName};
+(function() {
+  var ds = document.createElement('script');
+  ds.type = 'text/javascript';ds.async = true;
+  ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+  ds.charset = 'UTF-8';
+  (document.getElementsByTagName('head')[0] 
+  || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();</script></div><ul class="navication"><li class="home"><a href="/"><i class="icon icon-home"></i></a></li><li><a href="/2017/11/17/jQuery/"><i class="icon icon-arror-right"></i></a></li></ul><div class="page-footer"><div class="top"><ul class="social"><li><a href="https://gitee.com/horis" title="Github" target="_blank"><i class="icon icon-github"></i></a></li><li><a href="https://www.zhihu.com/people/wei-jun-ba-dao-82/activities" title="Zhihu" target="_blank"><i class="icon icon-zhihu"></i></a></li><li><a href="https://www.segmentfault.com/u/horistardust" title="SegmentFault" target="_blank"><i class="icon icon-segmentfault"></i></a></li></ul></div><div class="bottom"><p class="copyright">© 2017 Hexo<br><small>POWER BY <a href="https://hexo.io" target="_blank">HEXO</a></small><small>, THEME BY <a href="https://github.com/BoizZ/hexo-theme-laughing" target="_blank">LAUGHING</a></small></p></div></div></div><script>var wrap = document.getElementById('wrap');
+window.onload = function () {
+  wrap.className += ' done';
+}</script></body></html>
