@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>观察者模式 - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">观察者模式</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>3 Minutes</li><li><i class="icon icon-calendar"></i>November 23, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><h2 id="定义："><a href="#定义：" class="headerlink" title="定义："></a>定义：</h2><p>观察者模式又叫做发布/订阅模式，它定义了一种一对多的关系，让多个观察者对象同时监听某一个主题对象，这个主题对象的状态发生改变时就会通知所有观察着对象。它是由两类对象组成，被观察者（主题）和观察者，主题负责发布事件，同时观察者通过订阅这些事件来观察该主题，发布者和订阅者是完全解耦的，彼此不知道对方的存在，两者仅仅共享一个自定义事件的名称。</p>
+<h3 id="被观察者："><a href="#被观察者：" class="headerlink" title="被观察者："></a>被观察者：</h3><p>需要观察的内容，下面以各种活动为例(actions数组) ，实现思路：</p>
+<ol>
+<li><p>一个方法，这个方法用来添加观察者 </p>
+</li>
+<li><p>一个方法，这个方法用来告知所有已经添加进来的观察者，通知他们我这边有改变，使他们即可更新相关操作 </p>
+</li>
+<li><p>一个触发整个机制的方法</p>
+</li>
+<li><p>双向绑定的话，改变被观察者的内容，然后触发整个机制</p>
+</li>
+<li><p>回调函数，可以自定义内容，主要用来把观察者的相关信息传回被观察者，非必需</p>
+<pre><code>function Observed(){  
+    var observers=[];  
+    var actions=[&quot;跑步&quot;,&quot;游泳&quot;,&quot;杀猪&quot;];  
+    this.action=function(){  
+        this.notifyObservers(actions);       
+    } //3
+    this.addAction=function(action){  
+        actions.push(action);  
+        this.notifyObservers(actions);  
+    }  //4
+    this.addObserver=function(obs){  
+        observers.push(obs);  
+    }  //1
+    this.notifyObservers=function(actions){  
+        if(observers.length==0){  
+            return;  
+        }  
+        for(var i=0;i&lt;observers.length;i++){  
+            observers[i].updateActions(this,actions);  
+        }  
+    }  //2
+    this.callback=function(observer){  
+        console.log(&quot;已经通知 &quot;+observer.name+&quot; 更新了&quot;);  
+    }  //5
+
+}  
+</code></pre><h3 id="观察者"><a href="#观察者" class="headerlink" title="观察者"></a>观察者</h3><p>提供一个更新方法，随被观察者内容的变化而更新</p>
+</li>
+</ol>
+<p>observer1</p>
+<pre><code>function Observer1(){  
+            this.name=&quot;比克大魔王&quot;;  
+            this.oActions=[];  
+            this.updateActions=function(observed,actions){  
+                this.oActions=actions;  
+                for(var i=0;i&lt;this.oActions.length;i++){  
+                    console.log(this.oActions[i]);  
+                }  
+                observed.callback(this);  
+            }  
+
+        }  
+</code></pre><p>observer2</p>
+<pre><code>function Observer2(){  
+            this.name=&quot;孙悟饭&quot;;  
+            this.oActions=[];  
+            this.updateActions=function(observed,actions){  
+                this.oActions=actions;  
+                for(var i=0;i&lt;this.oActions.length;i++){  
+                    console.log(this.oActions[i]);  
+                }  
+                observed.callback(this);  
+            }  
+
+        }                  
+</code></pre><p>实例化：</p>
+<pre><code>var observed=new Observed();  
+var ob1=new Observer1();  
+var ob2=new Observer2();  
+observed.addObserver(ob1);  
+observed.addObserver(ob2);  
+console.log(&quot;——————————模式触发前————————————&quot;);  
+console.log(ob1.oActions);  
+console.log(ob2.oActions);  
+console.log(&quot;——————————模式触发时————————————&quot;);  
+observed.addAction(&quot;papa&quot;);  
+console.log(&quot;——————————模式触发后————————————&quot;);  
+console.log(ob1.oActions);  
+console.log(ob2.oActions);  
+</code></pre></div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/vue/">vue</a><span class="category-list-count">3</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjacianlb000ba0hqiwxr2uo1" data-title="观察者模式" data-url="http://yoursite.com/2017/11/23/watch/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+var duoshuoQuery = {short_name: siteName};
+(function() {
+  var ds = document.createElement('script');
+  ds.type = 'text/javascript';ds.async = true;
+  ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+  ds.charset = 'UTF-8';
+  (document.getElementsByTagName('head')[0] 
+  || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();</script></div><ul class="navication"><li class="home"><a href="/"><i class="icon icon-home"></i></a></li><li><a href="/2017/11/23/vuex/"><i class="icon icon-arror-left"></i></a></li><li><a href="/2017/11/21/$jquery1/"><i class="icon icon-arror-right"></i></a></li></ul><div class="page-footer"><div class="top"><ul class="social"><li><a href="https://gitee.com/horis" title="Github" target="_blank"><i class="icon icon-github"></i></a></li><li><a href="https://www.zhihu.com/people/wei-jun-ba-dao-82/activities" title="Zhihu" target="_blank"><i class="icon icon-zhihu"></i></a></li><li><a href="https://www.segmentfault.com/u/horistardust" title="SegmentFault" target="_blank"><i class="icon icon-segmentfault"></i></a></li></ul></div><div class="bottom"><p class="copyright">© 2017 Hexo<br><small>POWER BY <a href="https://hexo.io" target="_blank">HEXO</a></small><small>, THEME BY <a href="https://github.com/BoizZ/hexo-theme-laughing" target="_blank">LAUGHING</a></small></p></div></div></div><script>var wrap = document.getElementById('wrap');
+window.onload = function () {
+  wrap.className += ' done';
+}</script></body></html>
