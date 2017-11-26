@@ -1,5 +1,7 @@
 <!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>jQuery源码学习笔记(2) - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">jQuery源码学习笔记(2)</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>16 Minutes</li><li><i class="icon icon-calendar"></i>November 25, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><p>学习原文参考：<a href="https://www.imooc.com/learn/172" target="_blank" rel="external">慕课网：jQuery源码解析-架构与依赖模块</a></p>
-<h2 id="核心模块"><a href="#核心模块" class="headerlink" title="核心模块"></a>核心模块</h2><h3 id="对象的构建"><a href="#对象的构建" class="headerlink" title="对象的构建"></a>对象的构建</h3><p>面向对象(OOP)的语言都有一个特点，它们都会有类的这一概念，通过类可以抽象出创建具体相同方法与属性的对象。但是ECMAScript2015之前是没有类的概念的，因此它的对象与基于类的语言如java的定义是有所不同的。</p>
+<h2 id="核心模块"><a href="#核心模块" class="headerlink" title="核心模块"></a>核心模块</h2><h3 id="对象的构建"><a href="#对象的构建" class="headerlink" title="对象的构建"></a>对象的构建</h3><blockquote>
+<p>面向对象(OOP)的语言都有一个特点，它们都会有类的这一概念，通过类可以抽象出创建具体相同方法与属性的对象。但是ECMAScript2015之前是没有类的概念的，因此它的对象与基于类的语言如java的定义是有所不同的。</p>
+</blockquote>
 <p>js中用函数来充当类的构造器：</p>
 <pre><code>function ajQuery() {
     this.name = &apos;jQuery&apos;
@@ -89,7 +91,9 @@ $.each()             //作为静态方法存在
 <p>我们上节不是讲了内部会划分一个新的构造器init吗？jQuery通过new原型prototype上的init方法当作构造器，那么init的原型链方法就是实例的方法了，所以jQuery通过2个构造器划分2种不同的调用方式一种是静态，一种是原型。</p>
 <p>方法是共享的，并且实例方法取于静态方法，2个构造器是完全隔离的 ,这个要如何处理？</p>
 <p>看看jQuery给的方案：</p>
+<blockquote>
 <p>画龙点睛的一处init.prototype = jQuery.fn，把jQuery.prototype原型的引用赋给jQuery.fn.init.prototype的原型，这样就把2个构造器的原型给关联起来了。</p>
+</blockquote>
 <pre><code>ajQuery.fn = ajQuery.prototype = {
         name: &apos;aaron&apos;,
         init: function(selector) {
@@ -100,7 +104,9 @@ $.each()             //作为静态方法存在
 }
 ajQuery.fn.init.prototype = ajQuery.fn
 </code></pre>
+<blockquote>
 <p>通过原型传递解决问题，把jQuery的原型传递给jQuery.prototype.init.prototype。换句话说jQuery的原型对象覆盖了init构造器的原型对象，因为是引用传递所以不需要担心这个循环引用的性能问题。        </p>
+</blockquote>
 <h3 id="方法链式调用的实现"><a href="#方法链式调用的实现" class="headerlink" title="方法链式调用的实现"></a>方法链式调用的实现</h3><p>我们看一段链式代码：</p>
 <pre><code>$(&apos;input[type=&quot;button&quot;]&apos;)
     .eq(0).click(function() {
@@ -114,15 +120,20 @@ ajQuery.fn.init.prototype = ajQuery.fn
 }, function() {
     $(&apos;.aa&apos;).show(&apos;slow&apos;);
 });
-</code></pre><p> 那么可见jQuery的Internal DSL(Domain Specific Language，也就是用于描述和解决特定领域问题的语言)形式带来的好处——编写代码时，让代码更贴近作者的思维模式；阅读代码时，让读者更容易理解代码的含义；应用DSL可以有效的提高系统的可维护性（缩小了实现模型和领域模型的距离，提高了实现的可读性）和灵活性，并且提高开发的效率。<br>jQuery的这种管道风格的DSL链式代码，总的来说：</p>
-<p>  ☑  节约JS代码；</p>
-<p>  ☑  所返回的都是同一个对象，可以提高代码的效率。</p>
+</code></pre><p> 那么可见jQuery的Internal DSL(Domain Specific Language，也就是用于描述和解决特定领域问题的语言)形式带来的好处——编写代码时，让代码更贴近作者的思维模式；阅读代码时，让读者更容易理解代码的含义；应用DSL可以有效的提高系统的可维护性（缩小了实现模型和领域模型的距离，提高了实现的可读性）和灵活性，并且提高开发的效率。        </p>
+<blockquote>
+<p>jQuery的这种管道风格的DSL链式代码，总的来说：</p>
+<p> ☑  节约JS代码；</p>
+<p> ☑  所返回的都是同一个对象，可以提高代码的效率。</p>
+</blockquote>
 <p>所以我们如果需要链式的处理，只需要在方法内部方法当前的这个实例对象this就可以了，因为返回当前实例的this，从而又可以访问自己的原型了，这样的就节省代码量，提高代码的效率，代码看起来更优雅。但是这种方法有一个问题是：所有对象的方法返回的都是对象本身，也就是说没有返回值，所以这种方法不一定在任何环境下都适合。  </p>
 <p> 虽然Javascript是无阻塞语言，但是他并不是没阻塞，而是不能阻塞，所以他需要通过事件来驱动，异步来完成一些本需要阻塞进程的操作，这样处理只是<strong>同步链式</strong>，除了同步链式还有异步链式，<strong>异步链式</strong>jQuery从1.5开始就引入了Promise，jQuery.Deferred后期再讨论。</p>
 <h3 id="插件接口的设计"><a href="#插件接口的设计" class="headerlink" title="插件接口的设计"></a>插件接口的设计</h3><p>基于插件接口设计的好处也是颇多的，其中一个最重要的好处是把扩展的功能从主体框架中剥离出去，降低了框架的复杂度。所以在软件设计中插件接口的提供把独立的功能与框架以一种很宽松的方式松耦合。</p>
 <p>从之前的分析中我们可以知道jQuery对象的原理，所以一般来说，jQuery插件的开发分为两种：</p>
-<p>  ☑  一种是挂在jQuery命名空间下的全局函数，也可称为静态方法；</p>
-<p>  ☑  另一种是jQuery对象级别的方法，即挂在jQuery原型（准确的说是原型的引用fn）下的方法，这样通过选择器获取的jQuery对象实例也能共享该方法。</p>
+<blockquote>
+<p>☑  一种是挂在jQuery命名空间下的全局函数，也可称为静态方法；</p>
+<p> ☑  另一种是jQuery对象级别的方法，即挂在jQuery原型（准确的说是原型的引用fn）下的方法，这样通过选择器获取的jQuery对象实例也能共享该方法。</p>
+</blockquote>
 <p>提供的接口： <strong>$.extend(target, [object1], [objectN])</strong> </p>
 <p>接口的使用：</p>
 <pre><code>jQuery.extend({
@@ -134,7 +145,9 @@ jQuery.fn.extend({
     data:function(){},
     removeData:function(){}
 })
-</code></pre><p> jQuery的主体框架就是之前提到的那样，通过工厂模式返回一个内部的init构造器生成的对象。但是根据一般设计者的习惯，如果要为jQuery添加静态方法或者实例方法从封装的角度讲是应该提供一个统一的接口才符合设计的。</p>
+</code></pre><blockquote>
+<p>jQuery的主体框架就是之前提到的那样，通过工厂模式返回一个内部的init构造器生成的对象。但是根据一般设计者的习惯，如果要为jQuery添加静态方法或者实例方法从封装的角度讲是应该提供一个统一的接口才符合设计的。</p>
+</blockquote>
 <p> fn与jQuery其实是2个不同的对象，在之前有讲解：jQuery.extend 调用的时候，this是指向jQuery对象的(jQuery是函数，也是对象！)，所以这里扩展在jQuery上。而jQuery.fn.extend 调用的时候，this指向fn对象，jQuery.fn 和jQuery.prototype指向同一对象，扩展fn就是扩展jQuery.prototype原型对象。这里增加的是原型方法，也就是对象方法了。所以jQuery的API中提供了以上2个扩展函数。</p>
 <p> jQuery的extend代码实现比较长，我们简单说一下重点：</p>
 <pre><code>aAron.extend = aAron.fn.extend = function() {
@@ -165,8 +178,10 @@ jQuery.fn.extend({
 <pre><code>var $aaron = $(&quot;aaron&quot;);
 </code></pre><p>通过对sizzle的分析，我们可以得知Query选择器最终都是通过DOM接口实现取值的, 但是通过jQuery处理后返回的不仅仅只有DOM对象，而是一个包装容器，返回jQuery对象：$aaron。</p>
 <p>控制台打印后发现，在jQuery对象中有个prevObject对象，这个是干嘛用的呢？        </p>
+<blockquote>
 <p>如果你想知道prevObject是做什么的，咱们首先得先来了解一下jQuery对象栈，jQuery内部维护着一个jQuery对象栈。每个遍历方法都会找到一组新元素（一个jQuery对象），然后jQuery会把这组元素推入到栈中。</p>
 <p>而每个jQuery对象都有三个属性：context、selector和prevObject，其中的prevObject属性就指向这个对象栈中的前一个对象，而通过这个属性可以回溯到最初的DOM元素集中。</p>
+</blockquote>
 <p>jQuery引入一个简单的内部寻址的机制，可以回溯到之前的Dom元素集合，通过end()方法可以实现：</p>
 <pre><code>aaron.find(&apos;li&apos;).click(function() {
         alert(1);
@@ -179,9 +194,11 @@ jQuery.fn.extend({
 .addBack()        
 </code></pre><p>这里需要指出来可能有些API上是andSelf，因为就Query的api是这样写的，andSelf现在是.addBack()的一个别名。在jQuery1.8和更高版本中应使用.addBack()</p>
 <pre><code>jQuery.fn.andSelf = jQuery.fn.addBack;
-</code></pre><p>调用第一个方法只是简单地弹出一个对象（结果就是回到前一个jQuery对象）。第二个方法更有意思，调用它会在栈中回溯一个位置，然后把两个位置上的元素集组合起来，并把这个新的、组合之后的元素集推入栈的上方。</p>
+</code></pre><blockquote>
+<p>调用第一个方法只是简单地弹出一个对象（结果就是回到前一个jQuery对象）。第二个方法更有意思，调用它会在栈中回溯一个位置，然后把两个位置上的元素集组合起来，并把这个新的、组合之后的元素集推入栈的上方。</p>
 <p>利用这个DOM元素栈可以减少重复的查询和遍历的操作，而减少重复操作也正是优化jQuery代码性能的关键所在。</p>
 <p>大多数jQueryDOM遍历方法来操作jQuery对象实例，并创建一个新的对象，匹配一个不同的DOM元素集合。当发生这种情况时，实际上是新的元素集合被压入到对象内部维护的栈中。每次过滤方法都会被压入栈中。当我们需要返回到前一个状态时，我们可以使用end()进行出栈操作，来返回栈中的前一个状态。</p>
+</blockquote>
 <p>总的来说：end方法就是回溯到上一个Dom合集,因此对于链式操作与优化，这个方法还是很有意义的。</p>
 <p>既然是回溯到上一个DOM合集，那么肯定end方法中返回的就是一个jQuery对象了，所以我们看源码其实就是返回prevObject对象了，如下代码：</p>
 <pre><code>end: function() {
@@ -217,11 +234,14 @@ jQuery.fn.extend({
     return ret;
 }        
 </code></pre><p>流程解析：</p>
+<blockquote>
 <p>1、首先构建一个新的jQuery对象，因为constructor是指向构造器的，所以这里就等同于调用jQuery()方法了，返回了一个新的jQuery对象；</p>
 <p>2、然后用jQuery.merge语句把elems节点合并到新的jQuery对象上；</p>
 <p>3、最后给返回的新jQuery对象添加prevObject属性，我们看到prevObject其实还是当前jQuery的一个引用罢了，所以也就是为什么通过prevObject能取到上一个合集的原因了。        </p>
-<p>###　仿栈与队列的操作</p>
-<p>jQuery既然是模仿的数组结构，那么肯定会实现一套类数组的处理方法，比如常见的栈与队列操作push、pop、shift、unshift、求和、遍历循环each、排序及筛选等一系的扩展方法。</p>
+</blockquote>
+<h3 id="仿栈与队列的操作"><a href="#仿栈与队列的操作" class="headerlink" title="仿栈与队列的操作"></a>仿栈与队列的操作</h3><blockquote>
+<p>jQuery既然是模仿的数组结构，那么肯定会实现一套类数组的处理方法，比如常见的栈与队列操作push、pop、shift、&gt;unshift、求和、遍历循环each、排序及筛选等一系的扩展方法。</p>
+</blockquote>
 <p>jQuery对象栈是一个便于Dom的查找，提供的一系列方法，jQuery可以是集合元素，那么我们怎么快速的找到集合中对应的目标元素呢？</p>
 <p>jQuery提供了.get()、:index()、 :lt()、:gt()、:even()及 :odd()这类索引值相关的选择器，他们的作用可以过滤他们前面的匹配表达式的集合元素，筛选的依据就是这个元素在原先匹配集合中的顺序。</p>
 <p>我们来分别看一下这几个选择器的实现原理:</p>
@@ -252,9 +272,11 @@ $( li ).css(&quot;color&quot;, &quot;red&quot;); //用$包装
 console.log( index + &quot;: &quot;&quot; + $(this).text() );
 });       
 </code></pre><p>针对迭代器，这里有几个特点：</p>
+<blockquote>
 <p>☑ 访问一个聚合对象的内容而无需暴露它的内部。</p>
 <p>☑ 为遍历不同的集合结构提供一个统一的接口，从而支持同样的算法在不同的集合结构上进行操作。</p>
 <p>☑ 遍历的同时更改迭代器所在的集合结构可能会导致问题。</p>
+</blockquote>
 <p>抛开jQuery的each方法，我们自己实现一个有简单的迭代器功能的代码：</p>
 <pre><code>function each(obj, callback) {
     var i = 0;
@@ -269,10 +291,12 @@ each(arr, function(name) {
     console.log(name); 
 })    
 </code></pre><p>但是这样的处理其实太简单了，我们还要考虑至少四种情况：</p>
+<blockquote>
 <p>☑ 聚合对象，可能是对象，字符串或者数组等类型</p>
 <p>☑ 支持参数传递</p>
 <p>☑ 支持上下文的传递</p>
 <p>☑ 支持循环中退出</p>
+</blockquote>
 <p>我们简单的修改一下上面的代码：            </p>
 <pre><code>function each(obj, callback, context, arg) {
     var i = 0;
@@ -371,7 +395,7 @@ each(arr, function(name, arg) {
     //处理的代码
 });            
 </code></pre><p>可以看出上面代码方法，针对相同的功能，节约了大量的代码空间。        </p>
-</div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/jquery/">jquery</a><span class="category-list-count">5</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjagly5wz0003gohq10n1auwr" data-title="jQuery源码学习笔记(2)" data-url="http://yoursite.com/2017/11/25/$jquery2/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+</div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/jquery/">jquery</a><span class="category-list-count">5</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjagmc2ap0001kchqyzt88raf" data-title="jQuery源码学习笔记(2)" data-url="http://yoursite.com/2017/11/25/$jquery2/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
 var duoshuoQuery = {short_name: siteName};
 (function() {
   var ds = document.createElement('script');
