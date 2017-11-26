@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>jQuery源码学习笔记(1) - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">jQuery源码学习笔记(1)</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>3 Minutes</li><li><i class="icon icon-calendar"></i>November 21, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><p>学习参考：<a href="https://www.imooc.com/learn/172" target="_blank" rel="external">慕课网：jQuery源码解析-架构与依赖模块</a></p>
-<h2 id="jQuery设计理念"><a href="#jQuery设计理念" class="headerlink" title="jQuery设计理念"></a>jQuery设计理念</h2><p>jQuery是继prototype之后又一个优秀的Javascript框架。它是轻量级的js库 ，它兼容CSS3，还兼容各种浏览器（IE 6.0+, FF 1.5+, Safari 2.0+, Opera 9.0+），jQuery2.0及后续版本将不再支持IE6/7/8浏览器。jQuery使用户能更方便地处理HTML（标准通用标记语言下的一个应用）、events、实现动画效果，并且方便地为网站提供AJAX交互。jQuery还有一个比较大的优势是，它的文档说明很全，而且各种应用也说得很详细，同时还有许多成熟的插件可供选择。jQuery能够使用户的html页面保持代码和html内容分离，也就是说，不用再在html里面插入一堆js来调用命令了，只需定义id即可。<br>The Write Less,Do More（写更少，做更多），无疑就是jQuery的核心理念，简洁的API、优雅的链式、强大的查询与便捷的操作。从而把jQuery打造成前端世界的一把利剑，所向披靡！</p>
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>jQuery源码学习笔记(1) - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">jQuery源码学习笔记(1)</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>11 Minutes</li><li><i class="icon icon-calendar"></i>November 21, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><p>学习原文参考：<a href="https://www.imooc.com/learn/172" target="_blank" rel="external">慕课网：jQuery源码解析-架构与依赖模块</a></p>
+<h2 id="架构理解"><a href="#架构理解" class="headerlink" title="架构理解"></a>架构理解</h2><h3 id="jQuery设计理念"><a href="#jQuery设计理念" class="headerlink" title="jQuery设计理念"></a>jQuery设计理念</h3><p>jQuery是继prototype之后又一个优秀的Javascript框架。它是轻量级的js库 ，它兼容CSS3，还兼容各种浏览器（IE 6.0+, FF 1.5+, Safari 2.0+, Opera 9.0+），jQuery2.0及后续版本将不再支持IE6/7/8浏览器。jQuery使用户能更方便地处理HTML（标准通用标记语言下的一个应用）、events、实现动画效果，并且方便地为网站提供AJAX交互。jQuery还有一个比较大的优势是，它的文档说明很全，而且各种应用也说得很详细，同时还有许多成熟的插件可供选择。jQuery能够使用户的html页面保持代码和html内容分离，也就是说，不用再在html里面插入一堆js来调用命令了，只需定义id即可。<br>The Write Less,Do More（写更少，做更多），无疑就是jQuery的核心理念，简洁的API、优雅的链式、强大的查询与便捷的操作。从而把jQuery打造成前端世界的一把利剑，所向披靡！</p>
 <h3 id="1、最新jQuery2-1-1版本的结构："><a href="#1、最新jQuery2-1-1版本的结构：" class="headerlink" title="1、最新jQuery2.1.1版本的结构："></a>1、最新jQuery2.1.1版本的结构：</h3><pre><code>;(function(global, factory) {
     factory(global);
 }(typeof window !== &quot;undefined&quot; ? window : this, function(window, noGlobal) {
@@ -33,7 +33,7 @@
 </blockquote>
 <p>每一次大的改进都引入了一些新的机制、新的特性，通过这些新的机制就造就了如今jQuery库，一共13个模块，模块不是单一的，比如jQuery动画，都会依赖异步队列、动画队列、回调队列与数据缓存模块等。</p>
 <p>jQuery抽出了所有可复用的特性，分离出单一模块，通过组合的用法，不管在设计思路与实现手法上jQuery都是非常高明的。</p>
-<p>Query按我的理解分为五大块，选择器、DOM操作、事件、AJAX与动画，实际的13个模块,是为了更贴近<a href="http://blog.csdn.net/u012102401/article/details/50312645" target="_blank" rel="external">S.O.L.I.D五大原则</a>的“单一职责SRP”，遵守单一职责的好处是可以让我们很容易地来维护这个对象。</p>
+<p>Query可以理解分为五大块，选择器、DOM操作、事件、AJAX与动画，实际的13个模块,是为了更贴近<a href="http://blog.csdn.net/u012102401/article/details/50312645" target="_blank" rel="external">S.O.L.I.D五大原则</a>的“单一职责SRP”，遵守单一职责的好处是可以让我们很容易地来维护这个对象。</p>
 <p>我们来看看jQuery文档针对业务层的Ajax的处理提供了一系列的</p>
 <p><strong>门面接口：</strong></p>
 <pre><code>.ajaxComplete()
@@ -70,7 +70,165 @@ jQuery.post()
     };
 });
 </code></pre><p>在jQuery.ajax的内部实现是非常复杂的，首先ajax要考虑异步的处理与回调的统一性，所以就引入了异步队列模块（Deferred）与回调模块（Callbacks）, 所以要把这些模块方法在ajax方法内部再次封装成、构建出一个新的jQXHR对象，针对参数的默认处理，数据传输的格式化等等。</p>
-</div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/jquery/">jquery</a><span class="category-list-count">4</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjacie80p0000iwhqahpl66jt" data-title="jQuery源码学习笔记(1)" data-url="http://yoursite.com/2017/11/21/$jquery1/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+<h3 id="立即调用表达式"><a href="#立即调用表达式" class="headerlink" title="立即调用表达式"></a>立即调用表达式</h3><p>任何库与框架设计的第一个要点就是解决命名空间与变量污染的问题。jQuery就是利用了JavaScript函数作用域的特性，采用立即调用表达式包裹了自身的方法来解决这个问题。</p>
+<pre><code>(function(window, factory) {
+    factory(window)
+}(this, function() {
+    return function() {
+    //jQuery的调用
+    }
+}))
+//方法1
+
+var factory = function(){
+    return function(){
+        //执行方法
+    }
+}
+var jQuery = factory();
+//方法2
+
+(function(window, undefined) {
+    var jQuery = function() {}
+    // ...
+    window.jQuery = window.$ = jQuery;
+})(window);
+//方法3
+</code></pre><p><a href="https://segmentfault.com/q/1010000000311686" target="_blank" rel="external">立即调用表达式中的传参’undefined’作用</a></p>
+<p>主流的库一般都有对 AMD 和 CommonJS 的支持代码，看看jQuery的代码</p>
+<pre><code>if (typeof module === &quot;object&quot; &amp;&amp; typeof module.exports === &quot;object&quot;) {
+    module.exports = global.document ?
+        factory(global, true) :
+        function(w) {
+            if (!w.document) {
+                throw new Error(&quot;jQuery requires a window with a document&quot;);
+            }
+            return factory(w);
+    };
+} else {
+    factory(global);
+}
+</code></pre><p>总结：全局变量是魔鬼, 匿名函数可以有效的保证在页面上写入JavaScript，而不会造成全局变量的污染，通过小括号，让其加载的时候立即初始化，这样就形成了一个单例模式的效果从而只会执行一次。</p>
+<h3 id="jQuery的类数组对象结构"><a href="#jQuery的类数组对象结构" class="headerlink" title="jQuery的类数组对象结构"></a>jQuery的类数组对象结构</h3><p>很多人迷惑的jQuery为什么能像数组一样操作，通过对象get方法或者直接通过下标0索引就能转成DOM对象。</p>
+<p>首先我们看jQuery的入口都是统一的$, 通过传递参数的不同，实现了9种方法的重载：</p>
+<pre><code>1. jQuery([selector,[context]])
+2. jQuery(element)
+3. jQuery(elementArray)
+4. jQuery(object)
+5. jQuery(jQuery object)
+6. jQuery(html,[ownerDocument])
+7. jQuery(html,[attributes])
+8. jQuery()
+9. jQuery(callback)
+</code></pre><p>9种用法整体来说可以分三大块：选择器、dom的处理、dom加载。<br>换句话说jQuery就是为了获取DOM、操作DOM而存在的！所以为了更方便这些操作，让节点与实例对象通过一个桥梁给关联起来，jQuery内部就采用了一种叫“类数组对象”的方式作为存储结构，所以我们即可以像对象一样处理jQuery操作，也能像数组一样可以使用push、pop、shift、unshift、sort、each、map等类数组的方法操作jQuery对象了。</p>
+<p>模拟一个jquery对象的数据结构：<br><img src="/2017/11/21/$jquery1/$().jpg"></p>
+<pre><code>var aQuery = function(selector) {
+    //强制为对象
+    if (!(this instanceof aQuery)) {
+        return new aQuery(selector);
+    }
+    var elem = document.getElementById(/[^#].*/.exec(selector)[0]);
+    this.length = 1;
+    this[0] = elem;
+    this.context = document;
+    this.selector = selector;
+    this.get = function(num) {
+        return this[num];
+    }
+    return this;
+}
+</code></pre><p>每次调用ajQuery方法等于是创建了一个新的实例，那么类似get方法就要在每一个实例上重新创建一遍，性能就大打折扣，所以jQuery在结构上的优化不仅仅只是我们看到的，除了实现类数组结构、方法的原型共享，而且还实现方法的静态与实例的共存，这是我们之后将会重点分析的。</p>
+<h3 id="jQuery中ready与load事件"><a href="#jQuery中ready与load事件" class="headerlink" title="jQuery中ready与load事件"></a>jQuery中ready与load事件</h3><p>jQuery有3种针对文档加载的方法</p>
+<pre><code>$(document).ready(function() {
+    // ...代码...
+})
+//document ready 简写
+$(function() {
+    // ...代码...
+})
+$(document).load(function() {
+    // ...代码...
+</code></pre><p>})</p>
+<p>ready与load谁先执行：<br>大家在面试的过程中，经常会被问到一个问题：ready与load那一个先执行，那一个后执行？答案是ready先执行，load后执行。</p>
+<p>DOM文档加载的步骤：</p>
+<pre><code>(1) 解析HTML结构。
+
+(2) 加载外部脚本和样式表文件。
+
+(3) 解析并执行脚本代码。
+
+(4) 构造HTML DOM模型。//ready
+
+(5) 加载图片等外部文件。
+
+(6) 页面加载完毕。//load
+</code></pre><p>我们看看jQuery是如何处理文档加载时机的问题：</p>
+<pre><code>jQuery.ready.promise = function( obj ) {
+    if ( !readyList ) {
+        readyList = jQuery.Deferred();
+        if ( document.readyState === &quot;complete&quot; ) {
+            // Handle it asynchronously to allow scripts the opportunity to delay ready
+            setTimeout( jQuery.ready );
+        } else {
+            document.addEventListener( &quot;DOMContentLoaded&quot;, completed, false );
+            window.addEventListener( &quot;load&quot;, completed, false );
+        }
+    }
+    return readyList.promise( obj );
+};    
+</code></pre><p>jQuery的ready是通过promise给包装过的，这也是jQuery擅长的手法，统一了回调体系，以后我们会重点谈到。可见jQuery兼容的具体策略：针对高级的浏览器，我们当前很乐意用DOMContentLoaded事件了，省时省力。</p>
+<p>那么旧的IE如何处理呢？继续看jQuery的方案：</p>
+<pre><code>// Ensure firing before onload, maybe late but safe also for iframes
+document.attachEvent( &quot;onreadystatechange&quot;, completed );
+// A fallback to window.onload, that will always work
+window.attachEvent( &quot;onload&quot;, completed );
+// If IE and not a frame
+// continually check to see if the document is ready
+var top = false;
+try {
+    top = window.frameElement == null &amp;&amp; document.documentElement;
+} catch(e) {}
+if ( top &amp;&amp; top.doScroll ) {
+    (function doScrollCheck() {
+        if ( !jQuery.isReady ) {
+            try {
+                // Use the trick by Diego Perini
+                // http://javascript.nwbox.com/IEContentLoaded/
+                top.doScroll(&quot;left&quot;);
+            } catch(e) {
+                return setTimeout( doScrollCheck, 50 );
+            }
+            // detach all dom ready events
+            detach();
+
+            // and execute any waiting functions
+            jQuery.ready();
+        }
+    })();
+}
+</code></pre><p>Diego Perini 在 2007 年的时候，报告了一种检测 IE 是否加载完成的方式，使用 doScroll 方法调用，详情可见<a href="http://javascript.nwbox.com/IEContentLoaded/。" target="_blank" rel="external">http://javascript.nwbox.com/IEContentLoaded/。</a><br>原理就是对于 IE 在非 iframe 内时，只有不断地通过能否执行 doScroll 判断 DOM 是否加载完毕。在上述中间隔 50 毫秒尝试去执行 doScroll，注意，由于页面没有加载完成的时候，调用 doScroll 会导致异常，所以使用了 try -catch 来捕获异常。<br>结论：所以总的来说当页面 DOM 未加载完成时，调用 doScroll 方法时，会产生异常。那么我们反过来用，如果不异常，那么就是页面DOM加载完毕了。        </p>
+<h3 id="jQuery多库共存处理"><a href="#jQuery多库共存处理" class="headerlink" title="jQuery多库共存处理"></a>jQuery多库共存处理</h3><p>多库共存换句话说可以叫无冲突处理。</p>
+<p>总的来说会有2种情况会遇到：</p>
+<p>   1、$太火热，jQuery采用$作为命名空间，不免会与别的库框架或者插件相冲突。</p>
+<p>   2、jQuery版本更新太快，插件跟不上，导致不同版本对插件的支持度不一样。</p>
+<p>出于以上的原因，jQuery给出了解决方案–– noConflict函数。</p>
+<p>引入jQuery运行这个noConflict函数将变量$的控制权让给第一个实现它的那个库，确保jQuery不会与其他库的$对象发生冲突。</p>
+<p>在运行这个函数后，就只能使用jQuery变量访问jQuery对象。例如，在要用到$(“aaron”)的地方，就必须换成jQuery(“aaron”)，因为$的控制权已经让出去了。</p>
+<p>这个函数必须在你导入jQuery文件之后，并且在导入另一个导致冲突的库之前使用。当然也应当在其他冲突的库被使用之前，除非jQuery是最后一个导入的:</p>
+<pre><code>Var _jQuery = window.jQuery,
+    _$ = window.$;
+
+jQuery.noConflict = function( deep ) {
+    if ( window.$ === jQuery ) {
+        window.$ = _$;
+    }
+if ( deep &amp;&amp; window.jQuery === jQuery ) {
+        window.jQuery = _jQuery;
+    }
+    return jQuery;
+}; 
+</code></pre><p>如果我们需要同时使用jQuery和其他JavaScript库，我们可以使用 $.noConflict()把$的控制权交给其他库。旧引用的$ 被保存在jQuery的初始化; noConflict() 简单的恢复它们。<br>通过类似swap交换的概念，先把之前的存在的命名空间给缓存起来，通过对比当前的命名空间达到交换的目的，首先，我们先判断下当前的的$空间是不是被jQuery接管了，如果是则让出控制权给之前的_$引用的库，如果传入deep为true的话等于是把jQuery的控制权也让出去了。<br>如果不通过noConflict处理的话其后果可想而知，香喷喷的$大家都“觊觎已久”。        </p>
+</div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/jquery/">jquery</a><span class="category-list-count">5</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjaglv4z10000wwhqd29nh1r9" data-title="jQuery源码学习笔记(1)" data-url="http://yoursite.com/2017/11/21/$jquery1/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
 var duoshuoQuery = {short_name: siteName};
 (function() {
   var ds = document.createElement('script');
@@ -79,7 +237,7 @@ var duoshuoQuery = {short_name: siteName};
   ds.charset = 'UTF-8';
   (document.getElementsByTagName('head')[0] 
   || document.getElementsByTagName('body')[0]).appendChild(ds);
-})();</script></div><ul class="navication"><li class="home"><a href="/"><i class="icon icon-home"></i></a></li><li><a href="/2017/11/23/vuex/"><i class="icon icon-arror-left"></i></a></li><li><a href="/2017/11/18/MobileWeb/"><i class="icon icon-arror-right"></i></a></li></ul><div class="page-footer"><div class="top"><ul class="social"><li><a href="https://gitee.com/horis" title="Github" target="_blank"><i class="icon icon-github"></i></a></li><li><a href="https://www.zhihu.com/people/wei-jun-ba-dao-82/activities" title="Zhihu" target="_blank"><i class="icon icon-zhihu"></i></a></li><li><a href="https://www.segmentfault.com/u/horistardust" title="SegmentFault" target="_blank"><i class="icon icon-segmentfault"></i></a></li></ul></div><div class="bottom"><p class="copyright">© 2017 Hexo<br><small>POWER BY <a href="https://hexo.io" target="_blank">HEXO</a></small><small>, THEME BY <a href="https://github.com/BoizZ/hexo-theme-laughing" target="_blank">LAUGHING</a></small></p></div></div></div><script>var wrap = document.getElementById('wrap');
+})();</script></div><ul class="navication"><li class="home"><a href="/"><i class="icon icon-home"></i></a></li><li><a href="/2017/11/23/vuex/"><i class="icon icon-arror-left"></i></a></li><li><a href="/2017/11/21/$jquery2/"><i class="icon icon-arror-right"></i></a></li></ul><div class="page-footer"><div class="top"><ul class="social"><li><a href="https://gitee.com/horis" title="Github" target="_blank"><i class="icon icon-github"></i></a></li><li><a href="https://www.zhihu.com/people/wei-jun-ba-dao-82/activities" title="Zhihu" target="_blank"><i class="icon icon-zhihu"></i></a></li><li><a href="https://www.segmentfault.com/u/horistardust" title="SegmentFault" target="_blank"><i class="icon icon-segmentfault"></i></a></li></ul></div><div class="bottom"><p class="copyright">© 2017 Hexo<br><small>POWER BY <a href="https://hexo.io" target="_blank">HEXO</a></small><small>, THEME BY <a href="https://github.com/BoizZ/hexo-theme-laughing" target="_blank">LAUGHING</a></small></p></div></div></div><script>var wrap = document.getElementById('wrap');
 window.onload = function () {
   wrap.className += ' done';
 }</script></body></html>

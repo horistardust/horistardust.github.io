@@ -12,7 +12,7 @@
 <li><p>回调函数，可以自定义内容，主要用来把观察者的相关信息传回被观察者，非必需</p>
 <pre><code>function Observed(){  
     var observers=[];  
-    var actions=[&quot;跑步&quot;,&quot;游泳&quot;,&quot;杀猪&quot;];  
+    var actions=[&quot;跑步&quot;,&quot;游泳&quot;,&quot;打拳&quot;];  
     this.action=function(){  
         this.notifyObservers(actions);       
     } //3
@@ -79,7 +79,7 @@ observed.addAction(&quot;papa&quot;);
 console.log(&quot;——————————模式触发后————————————&quot;);  
 console.log(ob1.oActions);  
 console.log(ob2.oActions);  
-</code></pre></div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/vue/">vue</a><span class="category-list-count">3</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjacie823000biwhqgboo622s" data-title="观察者模式" data-url="http://yoursite.com/2017/11/23/watch/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+</code></pre></div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/vue/">vue</a><span class="category-list-count">3</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjaglv50j000ewwhqf57dngu3" data-title="观察者模式" data-url="http://yoursite.com/2017/11/23/watch/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
 var duoshuoQuery = {short_name: siteName};
 (function() {
   var ds = document.createElement('script');
