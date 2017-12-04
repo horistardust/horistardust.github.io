@@ -1,0 +1,175 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"><meta name="format-detection" content="telephone=no"><meta name="format-detection" content="email=no"><meta name="description"><meta name="keywords" content="Hexo, Gruntjs, Nodejs, Reactjs, Vuejs"><title>flux架构理解 - Hexo</title><link rel="stylesheet" href="/css/main_style.min.css"><link rel="icon" href="/favicon.ico"></head><body><input id="navi" type="checkbox"><ul class="main-navication"><li><a href="/"><span>Home</span></a></li><li><a href="https://github.com"><span>Github</span></a></li><li><a href="https://www.v2ex.com/"><span>V2EX</span></a></li></ul><div class="wrapper" id="wrap"><div class="post-header"><label class="navi-button light" for="navi">MENU</label><img class="background" src="http://callfiles.ueibo.com/hexo-theme-laughing/post_background.jpg"><div class="post-title"><h1 class="title">flux架构理解</h1><ul class="meta"><li><i class="icon icon-author"></i>horistardust</li><li><i class="icon icon-clock"></i>6 Minutes</li><li><i class="icon icon-calendar"></i>December 2, 2017</li></ul></div></div><div class="article-content" style="max-width:800px"><p><a href="http://www.ruanyifeng.com/blog/2016/01/flux.html" target="_blank" rel="external">来自阮一峰老师的总结</a>]</p>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>首先，Flux将一个应用分成四个部分。</p>
+<blockquote>
+<ul>
+<li>View： 视图层</li>
+<li>Action（动作）：视图层发出的消息（比如mouseClick）</li>
+<li>Dispatcher（派发器）：用来接收Actions、执行回调函数</li>
+<li>Store（数据层）：用来存放应用的状态，一旦发生变动，就提醒Views要更新页面</li>
+</ul>
+</blockquote>
+<img src="/2017/12/02/flux/flux.png">
+<p>Flux 的最大特点，就是数据的”单向流动”。</p>
+<h3 id="View（第一部分）"><a href="#View（第一部分）" class="headerlink" title="View（第一部分）"></a>View（第一部分）</h3><pre><code>    // index.jsx
+var React = require(&apos;react&apos;);
+var ReactDOM = require(&apos;react-dom&apos;);
+var MyButtonController = require(&apos;./components/MyButtonController&apos;);
+
+ReactDOM.render(
+&lt;MyButtonController/&gt;,
+document.querySelector(&apos;#example&apos;)
+);
+</code></pre><p>上面代码中，你可能注意到了，组件的名字不是 <code>MyButton</code>，而是 <code>MyButtonController</code>。这是为什么？<br>这里，我采用的是 React 的 controller view 模式。”controller view”组件只用来保存状态，然后将其转发给子组件。<code>MyButtonController</code>的源码很简单。</p>
+<pre><code>// components/MyButtonController.jsx
+var React = require(&apos;react&apos;);
+var ButtonActions = require(&apos;../actions/ButtonActions&apos;);
+var MyButton = require(&apos;./MyButton&apos;);
+
+var MyButtonController = React.createClass({
+createNewItem: function (event) {
+    ButtonActions.addNewItem(&apos;new item&apos;);
+},
+
+render: function() {
+    return &lt;MyButton
+    onClick={this.createNewItem}
+    /&gt;;
+}
+});
+
+module.exports = MyButtonController;        
+</code></pre><p>上面代码中，<code>MyButtonController</code>将参数传给子组件<code>MyButton</code>。</p>
+<pre><code>// components/MyButton.jsx
+var React = require(&apos;react&apos;);
+
+var MyButton = function(props) {
+return &lt;div&gt;
+    &lt;button onClick={props.onClick}&gt;New Item&lt;/button&gt;
+&lt;/div&gt;;
+};
+
+module.exports = MyButton;
+</code></pre><p>你可以看到<code>MyButton</code>是一个纯组件（即不含有任何状态），从而方便了测试和复用。这就是”controll view”模式的最大优点。</p>
+<p><code>MyButton</code>只有一个逻辑，就是一旦用户点击，就调用<code>this.createNewItem</code> 方法，向Dispatcher发出一个Action。     </p>
+<pre><code>// components/MyButtonController.jsx
+
+// ...
+createNewItem: function (event) {
+    ButtonActions.addNewItem(&apos;new item&apos;);
+}
+</code></pre><h3 id="Action"><a href="#Action" class="headerlink" title="Action"></a>Action</h3><p>每个Action都是一个对象，包含一个actionType属性（说明动作的类型）和一些其他属性（用来传递数据）。<br>在这个Demo里面，<code>ButtonActions</code> 对象用于存放所有的Action。 </p>
+<pre><code>// actions/ButtonActions.js
+   var AppDispatcher = require(&apos;../dispatcher/AppDispatcher&apos;);
+
+   var ButtonActions = {
+   addNewItem: function (text) {
+       AppDispatcher.dispatch({
+       actionType: &apos;ADD_NEW_ITEM&apos;,
+       text: text
+       });
+   },
+   };   
+</code></pre><p>上面代码中，<code>ButtonActions.addNewItem</code>方法使用<code>AppDispatcher</code>，把动作ADD_NEW_ITEM派发到Store。  </p>
+<h3 id="Dispatcher"><a href="#Dispatcher" class="headerlink" title="Dispatcher"></a>Dispatcher</h3><p>Dispatcher 的作用是将 Action 派发到 Store、。你可以把它看作一个路由器，负责在 View 和 Store 之间，建立 Action 的正确传递路线。注意，Dispatcher 只能有一个，而且是全局的。</p>
+<pre><code>// dispatcher/AppDispatcher.js
+var Dispatcher = require(&apos;flux&apos;).Dispatcher;
+var AppDispatcher = new Dispatcher();
+var ListStore = require(&apos;../stores/ListStore&apos;);
+
+AppDispatcher.register(function (action) {
+switch(action.actionType) {
+    case &apos;ADD_NEW_ITEM&apos;:
+    ListStore.addNewItemHandler(action.text);
+    ListStore.emitChange();
+    break;
+    default:
+    // no op
+}
+})//register用来登记各种Action的回调函数。
+
+module.exports = AppDispatcher;
+</code></pre><p>上面代码中，Dispatcher收到ADD_NEW_ITEM动作，就会执行回调函数，对Store(这里是storelist)进行操作。<br>记住，Dispatcher 只用来派发 Action，不应该有其他逻辑。</p>
+<h3 id="Store"><a href="#Store" class="headerlink" title="Store"></a>Store</h3><p>Store 保存整个应用的状态。它的角色有点像 MVC 架构之中的Model 。<br>在我们的 Demo 中，有一个ListStore，所有数据都存放在那里：</p>
+<pre><code>// stores/ListStore.js
+var EventEmitter = require(&apos;events&apos;).EventEmitter;
+var assign = require(&apos;object-assign&apos;);
+
+var ListStore = assign({}, EventEmitter.prototype, {
+items: [],
+
+getAll: function () {
+    return this.items;
+},
+
+addNewItemHandler: function (text) {
+    this.items.push(text);
+},
+
+emitChange: function () {
+    this.emit(&apos;change&apos;);
+},
+
+addChangeListener: function(callback) {
+    this.on(&apos;change&apos;, callback);
+},
+
+removeChangeListener: function(callback) {
+    this.removeListener(&apos;change&apos;, callback);
+}
+});
+</code></pre><p><code>ListStore.items</code>用来保存条目，<code>ListStore.getAll()</code>用来读取所有条目，<code>ListStore.emitChange()</code>用来发出一个”change”事件。</p>
+<p>由于 Store 需要在变动后向 View 发送”change”事件，因此它必须实现事件接口。</p>
+<p><code>ListStore</code>继承了<code>EventEmitter.prototype</code>，因此就能使用<code>ListStore.on()</code>和<code>ListStore.emit()</code>，来监听和触发事件了。<br>Store 更新后<code>this.addNewItemHandler()</code>发出事件<code>this.emitChange()</code>，表明状态已经改变。 View 监听到这个事件，就可以查询新的状态，更新页面了。</p>
+<h3 id="View-（第二部分）"><a href="#View-（第二部分）" class="headerlink" title="View （第二部分）"></a>View （第二部分）</h3><p>现在，我们再回过头来修改 View ，让它监听 Store 的 change 事件。</p>
+<pre><code>// components/MyButtonController.jsx
+ var React = require(&apos;react&apos;);
+ var ListStore = require(&apos;../stores/ListStore&apos;);
+ var ButtonActions = require(&apos;../actions/ButtonActions&apos;);
+ var MyButton = require(&apos;./MyButton&apos;);
+
+ var MyButtonController = React.createClass({
+ getInitialState: function () {
+     return {
+     items: ListStore.getAll()
+     };
+ },
+
+ componentDidMount: function() {
+     ListStore.addChangeListener(this._onChange);
+ },
+
+ componentWillUnmount: function() {
+     ListStore.removeChangeListener(this._onChange);
+ },
+
+ _onChange: function () {
+     this.setState({
+     items: ListStore.getAll()
+     });
+ },
+
+ createNewItem: function (event) {
+     ButtonActions.addNewItem(&apos;new item&apos;);
+ },
+
+ render: function() {
+     return &lt;MyButton
+     items={this.state.items}
+     onClick={this.createNewItem}
+     /&gt;;
+ }
+ });
+</code></pre><p>上面代码中，你可以看到当<code>MyButtonController</code> 发现 Store 发出 change 事件，就会调用 <code>this._onChange</code> 更新组件状态，从而触发重新渲染。       </p>
+</div><div class="article-meta" style="max-width:800px"><div class="categories"><i class="icon icon-category"></i><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/react/">react</a><span class="category-list-count">3</span></li></ul></div></div><div class="article-comment" style="max-width:800px"><div class="ds-thread" id="ds-thread" data-thread-key="cjasjdpn10004ishqjoj0n82x" data-title="flux架构理解" data-url="http://yoursite.com/2017/12/02/flux/" site-name="ueibo"></div><script>var siteName = document.getElementById('ds-thread').getAttribute('site-name');
+var duoshuoQuery = {short_name: siteName};
+(function() {
+  var ds = document.createElement('script');
+  ds.type = 'text/javascript';ds.async = true;
+  ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+  ds.charset = 'UTF-8';
+  (document.getElementsByTagName('head')[0] 
+  || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();</script></div><ul class="navication"><li class="home"><a href="/"><i class="icon icon-home"></i></a></li><li><a href="/2017/12/02/reducer/"><i class="icon icon-arror-left"></i></a></li><li><a href="/2017/11/25/$jquery2/"><i class="icon icon-arror-right"></i></a></li></ul><div class="page-footer"><div class="top"><ul class="social"><li><a href="https://gitee.com/horis" title="Github" target="_blank"><i class="icon icon-github"></i></a></li><li><a href="https://www.zhihu.com/people/wei-jun-ba-dao-82/activities" title="Zhihu" target="_blank"><i class="icon icon-zhihu"></i></a></li><li><a href="https://www.segmentfault.com/u/horistardust" title="SegmentFault" target="_blank"><i class="icon icon-segmentfault"></i></a></li></ul></div><div class="bottom"><p class="copyright">© 2017 Hexo<br><small>POWER BY <a href="https://hexo.io" target="_blank">HEXO</a></small><small>, THEME BY <a href="https://github.com/BoizZ/hexo-theme-laughing" target="_blank">LAUGHING</a></small></p></div></div></div><script>var wrap = document.getElementById('wrap');
+window.onload = function () {
+  wrap.className += ' done';
+}</script></body></html>
